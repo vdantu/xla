@@ -422,6 +422,11 @@ xla::XlaOp BuildAll(xla::XlaOp input, absl::Span<const xla::int64> dimensions,
   xla::XlaOp result =
       xla::Reduce(input, init_value, CreateAllComputation(shape.element_type()),
                   dimensions);
+  xla::XlaOp zeros = XlaHelpers::ScalarBroadcast<float>(
+      0.0, XlaHelpers::ShapeOfXlaOp(result), input.builder());
+  // This is to force the result to be 1 or 0 in the case of input with one
+  // element.
+  result = xla::Ne(result, zeros);
   if (keep_reduced_dimensions) {
     result = XlaHelpers::DynamicReshape(result, rinfo.new_dimensions);
   }
@@ -438,6 +443,11 @@ xla::XlaOp BuildAny(xla::XlaOp input, absl::Span<const xla::int64> dimensions,
   xla::XlaOp result =
       xla::Reduce(input, init_value, CreateAnyComputation(shape.element_type()),
                   dimensions);
+  xla::XlaOp zeros = XlaHelpers::ScalarBroadcast<float>(
+      0.0, XlaHelpers::ShapeOfXlaOp(result), input.builder());
+  // This is to force the result to be 1 or 0 in the case of input with one
+  // element.
+  result = xla::Ne(result, zeros);
   if (keep_reduced_dimensions) {
     result = XlaHelpers::DynamicReshape(result, rinfo.new_dimensions);
   }
